@@ -1,4 +1,4 @@
-package org.openjfx;
+package com.joao;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
