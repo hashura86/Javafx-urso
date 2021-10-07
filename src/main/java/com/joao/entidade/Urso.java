@@ -1,18 +1,19 @@
 package com.joao.entidade;
 
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 
-public class Urso {
-    private final String URSO_PATH = "assets/urso_01.png";
-    private GraphicsContext gc;
-    private Image imUrso = new Image(URSO_PATH);
-    
-    public Urso(GraphicsContext gc) {
-        this.gc = gc;
+public class Urso extends Sprite {
+    // private final String URSO_PATH = "assets/urso_01.png";
+    public int hp = 1;
+
+    public Urso(GraphicsContext gc, double posX, double posY) {
+        super(gc, posX, posY, "assets/urso_01.png");
+        this.speed = 25;
+        this.height = 111;
+        this.width = 80;
     }
     
-    public void render(double posX, double posY) {
-        gc.drawImage(this.imUrso, posX, posY, 80, 111);
-    }
+    // public void move(CharacterDirection direction) {
+    //     this.posX += this.speed * (direction == CharacterDirection.LEFT? -1 : 1);
+    // }
 }
