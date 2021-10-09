@@ -56,11 +56,11 @@ public abstract class Sprite {
             this.posX += this.speed * (direction == CharacterDirection.LEFT? -1 : 1) * this.delta;
     }
 
-    public boolean checkCollision(Sprite sprite) {
+    public boolean checkCollision(Sprite other) {
         return 
-            this.posX + this.width >= sprite.posX && 
-            this.posX + this.width <= sprite.posX + sprite.width && 
-            this.posY > sprite.posY && 
-            this.posY < sprite.posY + sprite.height;
+            other.posX < this.posX + this.width &&
+            other.posX + other.width > this.posX &&
+            other.posY < this.posY + this.height &&
+            other.posY + other.height > this.posY;
     }
 }
