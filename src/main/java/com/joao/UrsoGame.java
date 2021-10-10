@@ -7,6 +7,9 @@ import java.util.Random;
 import com.joao.entidade.CharacterDirection;
 import com.joao.entidade.Collectable;
 import com.joao.entidade.Urso;
+import com.joao.manager.AssetManager;
+import com.joao.manager.CollectableManager;
+import com.joao.manager.GraphicsManager;
 
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
@@ -20,6 +23,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -27,28 +31,27 @@ import javafx.util.Duration;
 public class UrsoGame {
     private final int CANVAS_WIDTH = 816;
     private final int CANVAS_HEIGHT = 638;
-    private final String BACKGROUND_PATH = "/assets/bg.png";
     
     private Stage stage;
     private Canvas canvas;
-    private GraphicsContext gc;
     
-    private Image imBackground = new Image(BACKGROUND_PATH);
+    private Image imBackground = AssetManager.BACKGROUND;
     private Urso urso;
     int seconds = 0;
-    List<Collectable> collectables = new ArrayList<Collectable>();
+    private Timeline timeline;
+    private boolean isGameover = false;
+
+    private final double SPEED_MULTIPLIER = 0.2;
+    private final int SPEED_CHANGE_TIME = 10;
 
     public UrsoGame(Stage stage) {
         this.stage = stage;
         this.canvas = new Canvas();
+        GraphicsManager.gc = this.canvas.getGraphicsContext2D();
         this.canvas.setWidth(this.CANVAS_WIDTH);
-        this.canvas.setHeight(this.CANVAS_HEIGHT);
-        this.gc = this.canvas.getGraphicsContext2D();
-        this.urso = new Urso(this.gc, 100, 480);
-        // GameEngine.gc = this.canvas.getGraphicsContext2D();
-        // GraphicsManager.getInstance().gc = this.canvas.getGraphicsContext2D();
-        // GraphicsManager.getInstance().canvas = this.canvas;
-
+        this.canvas.setHeight(this.CANVAS_HEIGHT); 
+        this.urso = new Urso(100, 480);
+        
         Group root = new Group();
         Scene scene = new Scene(root, this.canvas.getWidth(), this.canvas.getHeight()); 
         // SceneManager.getInstance().changeScene( new MenuScene() );
@@ -58,49 +61,38 @@ public class UrsoGame {
         stage.show();
 
         this.initKeyboard(scene);
-
     }
 
     public void run() {
-        Random rand = new Random();
         int offsetWidth = 80;
+        Random rand = new Random();
 
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+        timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             seconds++;
+            if (seconds % SPEED_CHANGE_TIME == 0) {
+                CollectableManager.getInstance().setSpeedMultiplier(CollectableManager.getInstance().speedMultiplier + SPEED_MULTIPLIER);
+            }
 
-            int nextPosX = (int) Math.round( rand.nextDouble() * canvas.getWidth() - offsetWidth );
-            collectables.add(new Collectable(gc, nextPosX , 100, rand.nextBoolean()));
-            collectables.get(collectables.size() - 1).speed = (int) Math.round( rand.nextDouble() * (30 - 10) + 10 );
+            for(int i = 0; i < rand.nextInt(3); i++)
+                CollectableManager.getInstance().createRandomCollectable(0, (int) canvas.getWidth() - offsetWidth);
         }));
         
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
         
         new AnimationTimer() {
-            double lastUpdate = 0; // última vez que o "handle()" foi chamado (Lembrando que ele se chama em 60 fps)
-            double delta = 0;
-            double elapsedTime = 0; // Quando tempo passou entre o último frame (lastUpdate) e o atual (now)
-            int dir = 1; // direção
-            int speed = 100;
-            boolean isGameover = false;
-            // List<Collectable> collectables = new ArrayList<Collectable>() {{
-            //     add(new Collectable(gc, 100, 100, false));
-            //     add(new Collectable(gc, 150, 100, true));
-            //     add(new Collectable(gc, 200, 100, false));
-            // }};
-
             
             @Override
             public void handle(long now) { // now é dado em nanosegundos
                 if (isGameover)
                     return;
                 
-                gc.setFill(Color.WHITE);
-                gc.fillRect(0, 0, canvas.getWidth(), canvas.getWidth());
-                gc.drawImage(imBackground, 0, 0, canvas.getWidth(), canvas.getHeight());
+                GraphicsManager.gc.setFill(Color.WHITE);
+                GraphicsManager.gc.fillRect(0, 0, canvas.getWidth(), canvas.getWidth());
+                GraphicsManager.gc.drawImage(imBackground, 0, 0, canvas.getWidth(), canvas.getHeight());
                 urso.render(now);
                 
-                for (Collectable c : collectables) {
+                for (Collectable c : CollectableManager.getInstance().getCollectables()) {
                     if (!c.visible)
                         return;
                     
@@ -109,26 +101,52 @@ public class UrsoGame {
 
                     if (c.checkCollision(urso)) {
                         c.visible = false;
+                        urso.hitboxColor = Color.RED;
 
-                        if(c.isBad)
-                            urso.hp -= c.damage;
+                        new Thread() {
+
+                            @Override
+                            public void run() {
+                                try {
+                                    Thread.sleep(500);
+                                    urso.hitboxColor = Color.BLACK;
+                                } catch (Exception e) {
+                                    System.out.println(e.getMessage());
+                                }
+                                
+                            }
+                          }.start();
+
+                        urso.hp -= c.damage;
+                        urso.score += c.points;
                     } else {
                         if (c.posY >= canvas.getHeight())
                         c.visible = false;
-                        // c.posY = 100;
                     }
                 }
 
                 if (urso.hp <= 0) {
-                    gc.setFont(new Font(32));
-                    gc.fillText("si fudeu", 100, 100);
+                    GraphicsManager.gc.setFont(new Font(32));
+                    GraphicsManager.gc.fillText("Perdeu", 100, 100);
                     isGameover = true;
                 }
                 
-                collectables.removeIf(c -> !c.visible);
-                gc.setFont(new Font(32));
-                gc.fillText("Vida:" + urso.hp, 320, 36);
-                // gc.fillText(String.valueOf(seconds), 320, 36);
+                CollectableManager.getInstance().getCollectables().removeIf(c -> !c.visible);
+
+                for (int i = 0; i < 3; i++)  {
+                    GraphicsManager.gc.drawImage(AssetManager.WHITE_HEART, ( 40 * i ) + 10, 36, 40, 40);
+                }
+
+                for (int i = 0; i < urso.hp; i++)  {
+                    GraphicsManager.gc.drawImage(AssetManager.RED_HEART, ( 40 * i ) + 10, 36, 40, 40);
+                }
+
+
+                GraphicsManager.gc.setFont(new Font(32));
+                // GraphicsManager.gc.fillText("Vida:" + urso.hp, 320, 36);
+                GraphicsManager.gc.fillText("Pontuação:" + urso.score, 320, 36);
+
+                GraphicsManager.gc.fillText("Tempo: " + String.valueOf(seconds), 320, 68);
 
                 // if (lastUpdate != 0) {
                 //     elapsedTime  = (now - lastUpdate) / 1_000_000_000.0; // 1 second = 1,000,000,000 (1 billion) nanoseconds
@@ -152,14 +170,16 @@ public class UrsoGame {
 
     private void initKeyboard(Scene scene) {
         this.canvas.setFocusTraversable(true); // Necessário para fazer com que o evento de teclado funcione no canvas
-        
+
         this.canvas.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
             switch(e.getCode()) {
                 case A:
-                    this.urso.move(CharacterDirection.LEFT);
+                    if (this.urso.posX >= 0)
+                        this.urso.move(CharacterDirection.LEFT);
                     break;
                 case D:
-                    this.urso.move(CharacterDirection.RIGHT);
+                    if (!(this.urso.posX + this.urso.width >= this.CANVAS_WIDTH))
+                        this.urso.move(CharacterDirection.RIGHT);
                     break;
             }
         });

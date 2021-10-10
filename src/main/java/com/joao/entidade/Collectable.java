@@ -1,19 +1,18 @@
 package com.joao.entidade;
 
-import javafx.scene.canvas.GraphicsContext;
+import com.joao.manager.AssetManager;
+
+import javafx.scene.image.Image;
 
 public class Collectable extends Sprite {
     public int points;
     public int damage;
     public boolean isBad;
 
-    public Collectable(GraphicsContext gc, double posX, double posY, boolean isBad) {
-        super(gc, posX, posY, isBad? "assets/maçãPodre.png" : "assets/maçã.png");
+    public Collectable(Image sprite, double posX, double posY, boolean isBad) {
+        super(posX, posY, sprite);
         this.isBad = isBad;
-        // this.speed = isBad? 5 : 10;
-        this.points = isBad? 0 : 100;
-        this.damage = isBad? 1 : 0;
-
+        this.speed = 10;
     }
     
     

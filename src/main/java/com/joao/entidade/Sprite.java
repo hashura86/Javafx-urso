@@ -1,9 +1,10 @@
 package com.joao.entidade;
 
+import com.joao.manager.GraphicsManager;
+
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 
 public abstract class Sprite {
     private GraphicsContext gc;
@@ -21,13 +22,28 @@ public abstract class Sprite {
     private double delta = 0;
     private double elapsedTime = 0; // Quando tempo passou entre o último frame (lastUpdate) e o atual (now)
 
-    public Sprite(GraphicsContext gc, double posX, double posY, String spritePath) {
-        this.gc = gc;
+    public Color hitboxColor = Color.BLACK;
+
+    public Sprite(double posX, double posY, Image sprite) {
+        this.gc =  GraphicsManager.gc;
         this.posX = posX;
         this.posY = posY;
-        this.sprite = new Image(spritePath);
+        this.sprite = sprite;
+
+        this.height = this.sprite.getHeight();
+        this.width = this.sprite.getWidth();
     }
     
+    public void drawHitbox() {
+        gc.setStroke(this.hitboxColor);
+        gc.strokeRect(
+            this.posX, 
+            this.posY, 
+            this.width != 0 ? this.width : this.sprite.getWidth(), 
+            this.height != 0 ? this.height : this.sprite.getHeight() 
+        );
+    }
+
     public void render(long now) {
         if (this.lastUpdate != 0) {
             this.elapsedTime  = (now - this.lastUpdate) / 1_000_000_000.0; // 1 second = 1,000,000,000 (1 billion) nanoseconds
@@ -43,10 +59,8 @@ public abstract class Sprite {
 
         
         // DEBUG
-        Paint p = gc.getFill();
-        gc.setFill(Color.RED);
-        gc.strokeRect(this.posX, this.posY, this.height != 0 ? this.height : this.sprite.getHeight(), this.width != 0 ? this.width : this.sprite.getWidth());
-        gc.setFill(p);
+        this.drawHitbox();
+        gc.fillText(String.valueOf(this.speed), (this.posX + this.width) / 2, this.posY - 30);
     }
 
     public void move(CharacterDirection direction) {
