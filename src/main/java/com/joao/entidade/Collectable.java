@@ -1,7 +1,5 @@
 package com.joao.entidade;
 
-import com.joao.manager.AssetManager;
-
 import javafx.scene.image.Image;
 
 public class Collectable extends Sprite {

@@ -1,15 +1,15 @@
 package com.joao;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import com.joao.entidade.CharacterDirection;
 import com.joao.entidade.Collectable;
 import com.joao.entidade.Urso;
 import com.joao.manager.AssetManager;
+import com.joao.manager.AudioManager;
 import com.joao.manager.CollectableManager;
 import com.joao.manager.GraphicsManager;
+import com.joao.media.Sound;
 
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
@@ -18,12 +18,9 @@ import javafx.animation.Timeline;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -32,7 +29,6 @@ public class UrsoGame {
     private final int CANVAS_WIDTH = 816;
     private final int CANVAS_HEIGHT = 638;
     
-    private Stage stage;
     private Canvas canvas;
     
     private Image imBackground = AssetManager.BACKGROUND;
@@ -45,7 +41,6 @@ public class UrsoGame {
     private final int SPEED_CHANGE_TIME = 10;
 
     public UrsoGame(Stage stage) {
-        this.stage = stage;
         this.canvas = new Canvas();
         GraphicsManager.gc = this.canvas.getGraphicsContext2D();
         this.canvas.setWidth(this.CANVAS_WIDTH);
@@ -61,6 +56,7 @@ public class UrsoGame {
         stage.show();
 
         this.initKeyboard(scene);
+        AudioManager.getInstance().playMusic(Sound.CATS_ON_MARS10S);
     }
 
     public void run() {
@@ -119,15 +115,21 @@ public class UrsoGame {
 
                         urso.hp -= c.damage;
                         urso.score += c.points;
+    
+                        if (c.isBad) {
+                            AudioManager.getInstance().playSound(Sound.BONK);
+                        }
+
                     } else {
                         if (c.posY >= canvas.getHeight())
-                        c.visible = false;
+                            c.visible = false;
                     }
                 }
 
                 if (urso.hp <= 0) {
                     GraphicsManager.gc.setFont(new Font(32));
-                    GraphicsManager.gc.fillText("Perdeu", 100, 100);
+                    GraphicsManager.gc.fillText("Perdeu", canvas.getWidth()/2, canvas.getHeight()/2);
+                    AudioManager.getInstance().stop();
                     isGameover = true;
                 }
                 
@@ -180,6 +182,8 @@ public class UrsoGame {
                 case D:
                     if (!(this.urso.posX + this.urso.width >= this.CANVAS_WIDTH))
                         this.urso.move(CharacterDirection.RIGHT);
+                    break;
+                default:
                     break;
             }
         });

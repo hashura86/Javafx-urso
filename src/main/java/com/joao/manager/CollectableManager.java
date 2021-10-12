@@ -6,7 +6,6 @@ import java.util.Random;
 
 import com.joao.entidade.Apple;
 import com.joao.entidade.BadApple;
-import com.joao.entidade.BadFish;
 import com.joao.entidade.Collectable;
 
 public class CollectableManager {
@@ -56,5 +55,8 @@ public class CollectableManager {
     public void setSpeedMultiplier(double speedMultiplier) {
         this.speedMultiplier = speedMultiplier;
         this.collectables.forEach(c -> c.speed = BASE_SPEED + BASE_SPEED * this.speedMultiplier);
+        double rate = AudioManager.getInstance().getMediaPlayer().getRate();
+
+        AudioManager.getInstance().getMediaPlayer().setRate(rate + 0.02);
     }
 }
