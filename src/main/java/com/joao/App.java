@@ -1,5 +1,7 @@
 package com.joao;
 
+import com.joao.engine.GameEngine;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
@@ -9,8 +11,8 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         stage.setTitle("URSO");
-        UrsoGame urso = new UrsoGame(stage);
-        urso.run();
+        GameEngine engine = new GameEngine(stage);
+        engine.run();
         
         // Desabilita a maximização da janela
         stage.maximizedProperty().

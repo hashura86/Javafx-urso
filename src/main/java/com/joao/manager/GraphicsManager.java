@@ -1,9 +1,11 @@
 package com.joao.manager;
 
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 
 public class GraphicsManager {
     public static GraphicsContext gc;
+    public static Canvas canvas;
 
     private GraphicsManager() {}
 

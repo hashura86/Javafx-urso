@@ -16,12 +16,12 @@ public class AudioManager {
 
     private AudioManager() {
         this.audioList = new HashMap<>();
-        // this.musicList.put(Song.TITLE, this.loadMusic("assets/music/title.mp3"));
-        // this.musicList.put(Song.MUSEUM, this.loadMusic("assets/music/Museum Music.mp3"));
         this.audioList.put(Sound.HOMAGE, this.loadMusic("Mild_High_Club_Homage.mp3"));
         this.audioList.put(Sound.CATS_ON_MARS, this.loadMusic("The_Seatbelts_-_Cats_on_Mars.mp3"));
         this.audioList.put(Sound.CATS_ON_MARS10S, this.loadMusic("URSO.mp3"));
         this.audioList.put(Sound.BONK, this.loadMusic("BONK.mp3"));
+        this.audioList.put(Sound.e, this.loadMusic("e.mp3"));
+        this.audioList.put(Sound.GAME_OVER, this.loadMusic("gameOverMusic.mp3"));
 
         // remover nulos
         // for (Song song : this.musicList.keySet()) {
@@ -44,7 +44,21 @@ public class AudioManager {
     }
 
     public void playSound(Sound sound) {
-        this.play(sound, 0.5, false);
+        this.playSound(sound, 0.5);
+    }
+
+    public void playSound(Sound sound, double volume) {
+        Media media = this.audioList.get(sound);
+
+        if (media == null) {
+            System.out.println("Erro ao tocar " + sound.name());
+            return;
+        }
+
+        MediaPlayer mp = new MediaPlayer(media);
+        mp.setVolume(volume);
+        mp.setAutoPlay(true);
+        mp.play();
     }
 
     public void playMusic(Sound sound) {

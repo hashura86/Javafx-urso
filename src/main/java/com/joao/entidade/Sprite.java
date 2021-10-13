@@ -59,8 +59,8 @@ public abstract class Sprite {
 
         
         // DEBUG
-        this.drawHitbox();
-        gc.fillText(String.valueOf(this.speed), (this.posX + this.width) / 2, this.posY - 30);
+        // this.drawHitbox();
+        // gc.fillText(String.valueOf(this.speed), (this.posX + this.width) / 2, this.posY - 30);
     }
 
     public void move(CharacterDirection direction) {
