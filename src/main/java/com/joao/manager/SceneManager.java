@@ -21,6 +21,7 @@ public class SceneManager {
         
         curScene = scene;
         curScene.init();
+        
     }
     
     public GameScene getCurrentScene() {

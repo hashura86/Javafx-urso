@@ -2,7 +2,9 @@ package com.joao.engine;
 
 import com.joao.manager.GraphicsManager;
 import com.joao.manager.SceneManager;
+import com.joao.scenes.GameOverScene;
 import com.joao.scenes.MenuScene;
+import com.joao.scenes.UrsoGameScene;
 
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -26,6 +28,7 @@ public class GameEngine {
         Group root = new Group();
         Scene scene = new Scene(root, this.canvas.getWidth(), this.canvas.getHeight()); 
 
+        // SceneManager.getInstance().changeScene( new GameOverScene());
         SceneManager.getInstance().changeScene( new MenuScene() );
         // SceneManager.getInstance().changeScene( new UrsoGameScene() );
 

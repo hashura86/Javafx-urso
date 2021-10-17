@@ -1,5 +1,8 @@
 package com.joao.entidade;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.joao.manager.GraphicsManager;
 
 import javafx.scene.canvas.GraphicsContext;
@@ -9,6 +12,8 @@ import javafx.scene.paint.Color;
 public abstract class Sprite {
     private GraphicsContext gc;
     private Image sprite;
+    // private Image animations[];
+    private Map<String, Image[]> animations = new HashMap<>();
 
     public double posX;
     public double posY;
@@ -24,6 +29,15 @@ public abstract class Sprite {
 
     public Color hitboxColor = Color.BLACK;
 
+    boolean isAnimating = false;
+    int frameDelay = 5;
+    int frameCount = 0;
+    int curFrame = 0;
+    int maxFrame = 2;
+    CharacterDirection dir;
+
+    String currentAnimation = "";
+
     public Sprite(double posX, double posY, Image sprite) {
         this.gc =  GraphicsManager.gc;
         this.posX = posX;
@@ -33,30 +47,57 @@ public abstract class Sprite {
         this.height = this.sprite.getHeight();
         this.width = this.sprite.getWidth();
     }
+
+    // public Sprite(double posX, double posY, Map<String, Image[]> animations) {
+    //     this(posX, posY, (Image) animations.values().toArray()[0]);
+    //     this.animations = animations;
+    //     this.currentAnimation = (String) animations.keySet().toArray()[0];
+
+    //     System.out.println(this.currentAnimation);
+    //     System.out.println(this.sprite.getUrl());
+    // }
+
+    // public void setAnimations(Image sprites[]) {
+    //     this.animations = sprites;
+    // }
     
     public void drawHitbox() {
         gc.setStroke(this.hitboxColor);
         gc.strokeRect(
             this.posX, 
             this.posY, 
-            this.width != 0 ? this.width : this.sprite.getWidth(), 
-            this.height != 0 ? this.height : this.sprite.getHeight() 
+            this.width,
+            this.height
         );
     }
 
     public void render(long now) {
+        // TODO: fazer o delta
         if (this.lastUpdate != 0) {
             this.elapsedTime  = (now - this.lastUpdate) / 1_000_000_000.0; // 1 second = 1,000,000,000 (1 billion) nanoseconds
             this.delta = this.elapsedTime * this.speed;
             // this..posX += this.delta * dir; 
         }
+
+        if(this.animations.size() > 0 && this.isAnimating) { //Tô em fase de animação?
+            if(++this.frameCount >= this.frameDelay) {   //Delay para não percorrer todas as animações de uma vez
+                this.curFrame += 1;     //
+                if(this.curFrame >= this.maxFrame)
+                    this.curFrame = 0;
+            
+                this.frameCount = 0;
+            }
+
+            // if (!this.currentAnimation.isEmpty())
+            this.sprite = this.animations.get(this.currentAnimation)[this.curFrame];
+            // this.sprite = this.animations[this.curFrame];
+        }
+
         this.lastUpdate = now;
+        
+        gc.drawImage(this.sprite, this.posX, this.posY, this.width, this.height);
 
-        if (this.width == 0 || this.height == 0)
-            gc.drawImage(this.sprite, this.posX, this.posY);
-        else
-            gc.drawImage(this.sprite, this.posX, this.posY, this.width, this.height);
-
+        this.isAnimating = false;
         
         // DEBUG
         // this.drawHitbox();
@@ -64,10 +105,25 @@ public abstract class Sprite {
     }
 
     public void move(CharacterDirection direction) {
-        if (direction == CharacterDirection.DOWN)
-            this.posY += this.speed * this.delta;
-        else
-            this.posX += this.speed * (direction == CharacterDirection.LEFT? -1 : 1) * this.delta;
+        this.isAnimating = true;
+
+        switch (direction) {
+            case DOWN:
+                this.posY += this.speed * this.delta;
+                break;
+            case LEFT:
+                this.posX -= this.speed * this.delta;
+                this.currentAnimation = "left";
+                break;
+                case RIGHT:
+                this.posX += this.speed * this.delta;
+                this.currentAnimation = "right";
+                break;
+            default:
+                break;
+        }
+        this.dir = direction;
+
     }
 
     public boolean checkCollision(Sprite other) {
@@ -77,4 +133,12 @@ public abstract class Sprite {
             other.posY < this.posY + this.height &&
             other.posY + other.height > this.posY;
     }
+
+    public void addAnimation(String animationKey, Image sprites[]) {
+        this.animations.put(animationKey, sprites);
+
+        if (this.currentAnimation.isEmpty())
+            this.currentAnimation = animationKey;
+    }
+
 }

@@ -10,6 +10,7 @@ import com.joao.manager.AudioManager;
 import com.joao.manager.CollectableManager;
 import com.joao.manager.GraphicsManager;
 import com.joao.manager.SceneManager;
+import com.joao.manager.ScoreManager;
 import com.joao.media.Sound;
 
 import javafx.animation.Animation;
@@ -33,6 +34,8 @@ public class UrsoGameScene extends GameScene {
     
     @Override
     public void init() {
+        CollectableManager.getInstance().reset();
+
         this.urso = new Urso(100, 480);
         this.initKeyboard();
         AudioManager.getInstance().playMusic(Sound.CATS_ON_MARS10S);
@@ -40,7 +43,9 @@ public class UrsoGameScene extends GameScene {
         int offsetWidth = 80;
         Random rand = new Random();
 
+        // É uma thread
         this.timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            // System.out.println(String.format("w:%f h:%f",  this.urso.width, this.urso.height));
             seconds++;
             if (seconds % SPEED_CHANGE_TIME == 0) {
                 CollectableManager.getInstance().setSpeedMultiplier(CollectableManager.getInstance().speedMultiplier + SPEED_MULTIPLIER);
@@ -141,12 +146,14 @@ public class UrsoGameScene extends GameScene {
         //     urso.posX += delta * dir; 
         // }
         // lastUpdate = now;
+        ScoreManager.score = urso.score;
     }
 
     @Override
     public void cleanUp() {
         AudioManager.getInstance().stop();
         this.canvas.setOnKeyPressed(null);
+        this.timeline.stop();
     }
 
 

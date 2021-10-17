@@ -9,11 +9,12 @@ import com.joao.entidade.BadApple;
 import com.joao.entidade.Collectable;
 
 public class CollectableManager {
-    private final int Y_SPAWN = -50; // Local onde vai spawnar os collectables
-
     private static CollectableManager instance;
-    private List<Collectable> collectables;
+ 
+    private final int Y_SPAWN = -50; // Local onde vai spawnar os collectables
     private final double BASE_SPEED = 10;
+
+    private List<Collectable> collectables;
     public double speedMultiplier = 0;
 
     private CollectableManager() {
@@ -27,6 +28,11 @@ public class CollectableManager {
        return instance;
     }
     
+    public void reset() {
+        this.collectables.clear();
+        this.speedMultiplier = 0;
+    }
+
     public void addCollectable(Collectable collectable) {
         this.collectables.add(collectable);
     }
