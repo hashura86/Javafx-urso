@@ -5,6 +5,7 @@ import java.util.Random;
 import com.joao.entidade.CharacterDirection;
 import com.joao.entidade.Collectable;
 import com.joao.entidade.Urso;
+import com.joao.entidade.UrsoColor;
 import com.joao.manager.AssetManager;
 import com.joao.manager.AudioManager;
 import com.joao.manager.CollectableManager;
@@ -16,6 +17,7 @@ import com.joao.media.Sound;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -26,17 +28,19 @@ public class UrsoGameScene extends GameScene {
     private Image imBackground = AssetManager.BACKGROUND;
     private Urso urso;
     private Timeline timeline;
-    private boolean isGameover = false;
     private int seconds = 0;
 
     private final double SPEED_MULTIPLIER = 0.2;
     private final int SPEED_CHANGE_TIME = 10;
+    private boolean isPaused = false;
     
     @Override
     public void init() {
         CollectableManager.getInstance().reset();
 
-        this.urso = new Urso(100, 480);
+        this.urso = new Urso(100, this.canvas.getHeight());
+        this.urso.posY -= this.urso.height;
+
         this.initKeyboard();
         AudioManager.getInstance().playMusic(Sound.CATS_ON_MARS10S);
 
@@ -45,12 +49,16 @@ public class UrsoGameScene extends GameScene {
 
         // É uma thread
         this.timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            // System.out.println(String.format("w:%f h:%f",  this.urso.width, this.urso.height));
+            if (this.isPaused)
+                return;
+            
             seconds++;
+            // Muda a speed das frutas baseado no tempo do jogo (em segundos)
             if (seconds % SPEED_CHANGE_TIME == 0) {
                 CollectableManager.getInstance().setSpeedMultiplier(CollectableManager.getInstance().speedMultiplier + SPEED_MULTIPLIER);
             }
 
+            // Spawna de 0 a 3 frutas a cada segundo
             for(int i = 0; i < rand.nextInt(3); i++)
                 CollectableManager.getInstance().createRandomCollectable(0, (int) canvas.getWidth() - offsetWidth);
         }));
@@ -61,9 +69,6 @@ public class UrsoGameScene extends GameScene {
 
     @Override
     public void render(long now) {
-        if (isGameover)
-            return;
-                
         GraphicsManager.gc.setFill(Color.WHITE);
         GraphicsManager.gc.fillRect(0, 0, canvas.getWidth(), canvas.getWidth());
         GraphicsManager.gc.drawImage(imBackground, 0, 0, canvas.getWidth(), canvas.getHeight());
@@ -74,32 +79,37 @@ public class UrsoGameScene extends GameScene {
                 return;
             
             c.render(now);
-            c.move(CharacterDirection.DOWN);
+            
+            if (!this.isPaused)
+                c.move(CharacterDirection.DOWN);
 
             if (c.checkCollision(urso)) {
                 c.visible = false;
                 urso.hitboxColor = Color.RED;
 
-                new Thread() {
+                // DEBUG: Mudança de cor nas hitbox
+                // new Thread() {
 
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(500);
-                            urso.hitboxColor = Color.BLACK;
-                        } catch (Exception e) {
-                            System.out.println(e.getMessage());
-                        }
+                //     @Override
+                //     public void run() {
+                //         try {
+                //             Thread.sleep(500);
+                //             urso.hitboxColor = Color.BLACK;
+                //         } catch (Exception e) {
+                //             System.out.println(e.getMessage());
+                //         }
                         
-                    }
-                    }.start();
+                //     }
+                //     }.start();
 
                 urso.hp -= c.damage;
                 urso.score += c.points;
 
                 if (c.isBad) {
                     AudioManager.getInstance().playSound(Sound.BONK);
-                }
+                } else 
+                    AudioManager.getInstance().playSound(Sound.EAT, 1);
+
 
             } else {
                 if (c.posY >= canvas.getHeight())
@@ -108,9 +118,6 @@ public class UrsoGameScene extends GameScene {
         }
 
         if (urso.hp <= 0) {
-            // GraphicsManager.gc.setFont(new Font(32));
-            // GraphicsManager.gc.fillText("Perdeu", canvas.getWidth()/2, canvas.getHeight()/2);
-            isGameover = true;
             SceneManager.getInstance().changeScene( new GameOverScene() );
         }
         
@@ -126,10 +133,11 @@ public class UrsoGameScene extends GameScene {
 
 
         GraphicsManager.gc.setFont(new Font(32));
-        // GraphicsManager.gc.fillText("Vida:" + urso.hp, 320, 36);
         GraphicsManager.gc.fillText("Pontuação:" + urso.score, 320, 36);
-
         GraphicsManager.gc.fillText("Tempo: " + String.valueOf(seconds), 320, 68);
+
+        if (this.isPaused)
+            GraphicsManager.gc.fillText("PAUSE" , (this.canvas.getWidth()/2) - 80, this.canvas.getHeight()/2);
 
         // if (lastUpdate != 0) {
         //     elapsedTime  = (now - lastUpdate) / 1_000_000_000.0; // 1 second = 1,000,000,000 (1 billion) nanoseconds
@@ -156,6 +164,9 @@ public class UrsoGameScene extends GameScene {
         this.timeline.stop();
     }
 
+    // private void doPause() {
+        
+    // }
 
     private void initKeyboard() {
         this.canvas.setFocusTraversable(true); // Necessário para fazer com que o evento de teclado funcione no canvas
@@ -163,12 +174,32 @@ public class UrsoGameScene extends GameScene {
         this.canvas.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
             switch(e.getCode()) {
                 case A:
+                    if (this.isPaused) return;
+
                     if (this.urso.posX >= 0)
                         this.urso.move(CharacterDirection.LEFT);
                     break;
                 case D:
+                    if (this.isPaused) return;
+
                     if (!(this.urso.posX + this.urso.width >= this.canvas.getWidth()))
                         this.urso.move(CharacterDirection.RIGHT);
+                    break;
+                case P:
+                    this.isPaused = !this.isPaused;
+
+                    if(this.isPaused) {
+                        AudioManager.getInstance().playSound(Sound.PAUSE, 0.2);
+                        AudioManager.getInstance().pause();
+                    }
+                    else {
+                        AudioManager.getInstance().playSound(Sound.UNPAUSE, 1);
+                        AudioManager.getInstance().resume();
+                    }
+
+                    break;
+                case ESCAPE:
+                    Platform.exit();
                     break;
                 default:
                     break;

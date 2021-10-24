@@ -54,6 +54,8 @@ public class MenuScene extends GameScene {
     @Override
     public void cleanUp() {
         AudioManager.getInstance().stop();
+        this.canvas.setOnMouseMoved(null);
+        this.canvas.setOnMousePressed(null);
     }
 
     public boolean checkMouseCollision() {
@@ -69,9 +71,8 @@ public class MenuScene extends GameScene {
             public void handle(MouseEvent e) {
                 if (checkMouseCollision()) {
                     AudioManager.getInstance().playSound(Sound.e, 0.5);
+                    SceneManager.getInstance().changeScene( new UrsoGameScene() );
                 }
-
-                SceneManager.getInstance().changeScene( new UrsoGameScene() );
             }
        };
 

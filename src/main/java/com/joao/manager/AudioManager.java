@@ -6,6 +6,7 @@ import com.joao.media.Sound;
 
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
 public class AudioManager {
@@ -22,6 +23,10 @@ public class AudioManager {
         this.audioList.put(Sound.BONK, this.loadMusic("BONK.mp3"));
         this.audioList.put(Sound.e, this.loadMusic("e.mp3"));
         this.audioList.put(Sound.GAME_OVER, this.loadMusic("gameOverMusic.mp3"));
+        this.audioList.put(Sound.AUDIO_TESTE, this.loadMusic("audio_teste.mp3"));
+        this.audioList.put(Sound.EAT, this.loadMusic("eat.wav"));
+        this.audioList.put(Sound.PAUSE, this.loadMusic("pause.mp3"));
+        this.audioList.put(Sound.UNPAUSE, this.loadMusic("unpause2.mp3"));
 
         // remover nulos
         // for (Song song : this.musicList.keySet()) {
@@ -65,6 +70,10 @@ public class AudioManager {
         this.play(sound, 0.2, true);
     }
 
+    public void playMusic(Sound sound, float volume) {
+        this.play(sound, volume, true);
+    }
+
     private void play(Sound sound, double volume, boolean loop) {
         Media media = this.audioList.get(sound);
 
@@ -90,6 +99,18 @@ public class AudioManager {
     public void stop() {
         if(this.player == null) return;
         this.player.stop();
+    }
+
+    public void pause() {
+        if(this.player == null) return;
+        this.player.pause();
+    }
+
+    public void resume() {
+        if(this.player == null) return;
+        if(this.player.getStatus() != Status.PAUSED) return;
+        
+        this.player.play();
     }
 
     private Media loadMusic(String songName) {

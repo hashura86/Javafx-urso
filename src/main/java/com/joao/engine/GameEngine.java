@@ -13,8 +13,8 @@ import javafx.stage.Stage;
 import javafx.animation.AnimationTimer;
 
 public class GameEngine {
-    private final int CANVAS_WIDTH = 816;
-    private final int CANVAS_HEIGHT = 638;
+    private final int CANVAS_WIDTH = 1280;
+    private final int CANVAS_HEIGHT = 720;
 
     private Canvas canvas;
 
