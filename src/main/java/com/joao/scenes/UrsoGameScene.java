@@ -72,6 +72,7 @@ public class UrsoGameScene extends GameScene {
         GraphicsManager.gc.setFill(Color.WHITE);
         GraphicsManager.gc.fillRect(0, 0, canvas.getWidth(), canvas.getWidth());
         GraphicsManager.gc.drawImage(imBackground, 0, 0, canvas.getWidth(), canvas.getHeight());
+        
         urso.render(now);
         
         for (Collectable c : CollectableManager.getInstance().getCollectables()) {

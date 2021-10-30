@@ -19,9 +19,8 @@ public class SceneManager {
         if(curScene != null)
             curScene.cleanUp();
         
+        scene.init();
         curScene = scene;
-        curScene.init();
-        
     }
     
     public GameScene getCurrentScene() {
