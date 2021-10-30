@@ -25,7 +25,9 @@ public abstract class GameScene {
     public abstract void render(long now); 
 
     /**
-     * Chamado quando a GameScene é removida
+     * Chamado quando a GameScene é removida.
+     * 
+     * AQUI VOCÊ CHAMA COISAS LIBERAÇÃO DO EVENTO DE TECLADO E MOUSE (23/10/2021)
      */
     public abstract void cleanUp();
 }

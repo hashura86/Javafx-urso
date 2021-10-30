@@ -96,7 +96,7 @@ public void init() {
         this.gc.setFill(Color.AQUAMARINE);
         this.gc.fillText("Pontos: " + ScoreManager.score, this.canvas.getWidth() - 200, 50);
 
-        if(this.posY <= -1460) {
+        if(this.posY <= this.creditsBackground.getHeight() * -1) {
             this.hasEndedCredits = true;
         }
 

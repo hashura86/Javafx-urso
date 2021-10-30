@@ -7,5 +7,9 @@ public enum Sound {
     BONK,
     e, // e
     GAME_OVER,
+    AUDIO_TESTE,
+    EAT,
+    PAUSE,
+    UNPAUSE
 
 }

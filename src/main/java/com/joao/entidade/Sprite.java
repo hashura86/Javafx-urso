@@ -3,6 +3,7 @@ package com.joao.entidade;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.joao.manager.CollectableManager;
 import com.joao.manager.GraphicsManager;
 
 import javafx.scene.canvas.GraphicsContext;
@@ -11,7 +12,7 @@ import javafx.scene.paint.Color;
 
 public abstract class Sprite {
     private GraphicsContext gc;
-    private Image sprite;
+    public Image sprite;
     // private Image animations[];
     private Map<String, Image[]> animations = new HashMap<>();
 
@@ -38,14 +39,22 @@ public abstract class Sprite {
 
     String currentAnimation = "";
 
+    private final float MAX_ACC = 2;
+    private final float MIN_ACC = 1;
+    private final float ACC_INC = 0.2f;
+    private final float ACC_DEC = 0.05f;
+    private float acc = this.MIN_ACC;
+
     public Sprite(double posX, double posY, Image sprite) {
         this.gc =  GraphicsManager.gc;
         this.posX = posX;
         this.posY = posY;
         this.sprite = sprite;
 
-        this.height = this.sprite.getHeight();
-        this.width = this.sprite.getWidth();
+        if (this.sprite != null) {
+            this.height = this.sprite.getHeight();
+            this.width = this.sprite.getWidth();
+        }
     }
 
     // public Sprite(double posX, double posY, Map<String, Image[]> animations) {
@@ -69,6 +78,10 @@ public abstract class Sprite {
             this.width,
             this.height
         );
+    }
+
+    public void pauseAnimations(long now) {
+        this.lastUpdate = now;
     }
 
     public void render(long now) {
@@ -95,8 +108,19 @@ public abstract class Sprite {
 
         this.lastUpdate = now;
         
-        gc.drawImage(this.sprite, this.posX, this.posY, this.width, this.height);
+        if (this.sprite != null)
+            gc.drawImage(this.sprite, this.posX, this.posY, this.width, this.height);
 
+        if (!this.isAnimating) {
+            this.acc -= this.ACC_DEC;
+            
+            if (this.acc <= this.MIN_ACC) {
+                this.acc = this.MIN_ACC;
+            } else {
+                // this.posX += this.speed * this.delta * this.acc * ((this.dir == CharacterDirection.LEFT)? -1 : 1);
+            }
+        }
+        
         this.isAnimating = false;
         
         // DEBUG
@@ -107,22 +131,31 @@ public abstract class Sprite {
     public void move(CharacterDirection direction) {
         this.isAnimating = true;
 
+        if(this instanceof Urso)
+            System.out.println(this.acc);
+
+        if (this.acc >= this.MAX_ACC)
+            this.acc = this.MAX_ACC;
+
         switch (direction) {
             case DOWN:
-                this.posY += this.speed * this.delta;
+                this.posY += this.speed * this.delta ;
                 break;
             case LEFT:
-                this.posX -= this.speed * this.delta;
+                this.posX -= this.speed * this.delta * this.acc;
                 this.currentAnimation = "left";
                 break;
                 case RIGHT:
-                this.posX += this.speed * this.delta;
+                this.posX += this.speed * this.delta * this.acc;
                 this.currentAnimation = "right";
                 break;
             default:
                 break;
         }
+
         this.dir = direction;
+        this.acc += this.ACC_INC;
+        
 
     }
 
